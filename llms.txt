@@ -1,0 +1,218 @@
+# zigdist
+
+`zigdist` is an experimental demonstration that integrates the [Zig
+programming language](https://ziglang.org/) into an R package. It
+provides high-performance distance metric calculations as a
+proof-of-concept. While Zig is not currently supported on CRAN, its
+exceptional performance, simple FFI, data-oriented design, and robust
+systems programming capabilities suggest it could be of significant
+interest to the R package development community.
+
+## Distance methods
+
+- Euclidean
+  ([`zd_euclidean()`](http://humus.rocks/zigdist/reference/zd_euclidean.md)):
+  Pairwise row distance and cross-distance for numeric matrices,
+  supporting missing values (partial distance scaling)
+- Gower
+  ([`zd_gower()`](http://humus.rocks/zigdist/reference/zd_gower.md)):
+  Mixed-type distance computations (scaling numeric features by range,
+  matching categorical features), supporting missing values (pairwise
+  deletion)
+
+These distance methods use multi-threaded parallel execution by
+specifying `num_threads > 1`.
+
+## Installation
+
+You can install the development version of `zigdist` from GitHub:
+
+``` r
+
+# install.packages("remotes")
+remotes::install_github("brownag/zigdist")
+```
+
+Note: A Zig compiler (v0.13.0 or later) must be installed on your system
+and available in your `PATH` to compile the package from source.
+
+## Quick Start
+
+``` r
+
+library(zigdist)
+
+# Euclidean
+x <- matrix(rnorm(15), nrow = 5, ncol = 3)
+zd_euclidean(x)
+```
+
+``` R
+##           [,1]     [,2]      [,3]      [,4]     [,5]
+## [1,] 0.0000000 1.386659 0.7205155 1.4376812 3.073647
+## [2,] 1.3866588 0.000000 1.1995957 1.4948732 1.996829
+## [3,] 0.7205155 1.199596 0.0000000 0.7714199 2.759485
+## [4,] 1.4376812 1.494873 0.7714199 0.0000000 2.476123
+## [5,] 3.0736469 1.996829 2.7594852 2.4761225 0.000000
+```
+
+``` r
+
+# Gower (supports mixed types: numeric, nominal factors, and ordered factors)
+df <- data.frame(
+  a = c(1, 2, 5),
+  b = factor(c("A", "B", "A")),
+  c = ordered(c("Low", "Medium", "High"), levels = c("Low", "Medium", "High"))
+)
+zd_gower(df)
+```
+
+``` R
+##           [,1]      [,2]      [,3]
+## [1,] 0.0000000 0.5833333 0.6666667
+## [2,] 0.5833333 0.0000000 0.7500000
+## [3,] 0.6666667 0.7500000 0.0000000
+```
+
+## Correctness and Equivalence
+
+To demonstrate functional equivalence, we verify that the outputs of
+`zigdist` match the standard R implementations
+([`stats::dist`](https://rdrr.io/r/stats/dist.html) and
+[`cluster::daisy`](https://rdrr.io/pkg/cluster/man/daisy.html)) using
+[`all.equal()`](https://rdrr.io/r/base/all.equal.html):
+
+``` r
+
+# Euclidean vs. stats::dist
+x_check <- matrix(rnorm(300), nrow = 20, ncol = 15)
+all.equal(zd_euclidean(x_check), as.matrix(dist(x_check)), check.attributes = FALSE)
+```
+
+``` R
+## [1] TRUE
+```
+
+``` r
+
+# Gower vs. cluster::daisy
+library(cluster)
+df_check <- data.frame(
+  n = rnorm(20),
+  f = factor(sample(letters[1:3], 20, replace = TRUE)),
+  c = factor(sample(c("Yes", "No"), 20, replace = TRUE))
+)
+all.equal(zd_gower(df_check), as.matrix(daisy(df_check, metric = "gower")), check.attributes = FALSE)
+```
+
+``` R
+## [1] TRUE
+```
+
+## Performance Benchmarks
+
+Below are benchmarks comparing `zigdist` against standard R
+implementations, using the `microbenchmark` package.
+
+``` r
+
+library(microbenchmark)
+library(cluster)
+```
+
+### Euclidean
+
+We compare
+[`zigdist::zd_euclidean`](http://humus.rocks/zigdist/reference/zd_euclidean.md)
+(single-threaded and multi-threaded) against R’s built-in
+[`stats::dist`](https://rdrr.io/r/stats/dist.html) (converted to a full
+matrix) on a $`500 \times 100`$ numeric matrix.
+
+``` r
+
+set.seed(42)
+x_bench <- matrix(rnorm(50000), nrow = 500, ncol = 100)
+
+bench_eucl <- microbenchmark(
+  `zigdist 1 thread` = zd_euclidean(x_bench, num_threads = 1L),
+  `zigdist 4 thread` = zd_euclidean(x_bench, num_threads = 4L),
+  stats_dist = as.matrix(dist(x_bench)),
+  times = 50
+)
+print(bench_eucl)
+```
+
+``` R
+## Unit: milliseconds
+##              expr      min       lq     mean   median       uq       max neval
+##  zigdist 1 thread 3.095839 3.341235 3.417879 3.376615 3.418276  5.956252    50
+##  zigdist 4 thread 1.137026 1.656667 1.922773 1.883927 2.174168  4.912599    50
+##        stats_dist 7.277462 7.355754 7.885795 7.846700 7.895426 12.916477    50
+```
+
+Even on a single thread (`num_threads = 1L`), `zigdist` significantly
+outperforms R’s native
+[`stats::dist`](https://rdrr.io/r/stats/dist.html) (written in optimized
+C) by more than **2.3x**. Spawning multiple threads (e.g.,
+`num_threads = 4L`) achieves a **4.2x speedup**.
+
+### Gower
+
+We compare
+[`zigdist::zd_gower`](http://humus.rocks/zigdist/reference/zd_gower.md)
+(single-threaded and multi-threaded) against
+`cluster::daisy(..., metric = "gower")` (converted to a full matrix) on
+a mixed-type data frame with 500 rows and 6 columns (3 numeric, 3
+categorical).
+
+``` r
+
+set.seed(42)
+N_bench <- 500
+df_bench <- data.frame(
+  n1 = rnorm(N_bench),
+  n2 = runif(N_bench),
+  n3 = rnorm(N_bench, mean = 10, sd = 2),
+  c1 = factor(sample(letters[1:4], N_bench, replace = TRUE)),
+  c2 = factor(sample(c("Yes", "No"), N_bench, replace = TRUE)),
+  c3 = factor(sample(colors()[1:10], N_bench, replace = TRUE))
+)
+
+bench_gow <- microbenchmark(
+  `zigdist 1 thread` = zd_gower(df_bench, num_threads = 1L),
+  `zigdist 4 thread` = zd_gower(df_bench, num_threads = 4L),
+  cluster_daisy = as.matrix(daisy(df_bench, metric = "gower")),
+  times = 20
+)
+print(bench_gow)
+```
+
+``` R
+## Unit: microseconds
+##              expr      min        lq     mean   median        uq      max neval
+##  zigdist 1 thread  560.772  628.8790 1065.951  825.953  978.4925 3645.901    20
+##  zigdist 4 thread  534.922  764.8815 1314.562 1225.668 1523.8690 4689.964    20
+##     cluster_daisy 4747.266 6152.7965 6797.294 6977.001 7758.4775 8386.117    20
+```
+
+For mixed-type data, `zigdist` represents a substantial improvement over
+[`cluster::daisy`](https://rdrr.io/pkg/cluster/man/daisy.html),
+calculating distances **8.4x faster** in single-threaded mode. For
+smaller calculations, running sequentially on a single thread is
+recommended to eliminate thread-spawning overhead.
+
+# Package index
+
+## All functions
+
+- [`zd_euclidean()`](http://humus.rocks/zigdist/reference/zd_euclidean.md)
+  : Compute Pairwise Euclidean Distance
+- [`zd_gower()`](http://humus.rocks/zigdist/reference/zd_gower.md) :
+  Compute Gower Distance
+
+# Articles
+
+### All vignettes
+
+- [Introduction to
+  zigdist](http://humus.rocks/zigdist/articles/introduction.md):

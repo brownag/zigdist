@@ -1,0 +1,4 @@
+^.development$
+^.github$
+^README\.Rmd$
+^Makefile$

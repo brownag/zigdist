@@ -1,0 +1,87 @@
+---
+title: "Introduction to zigdist"
+author: "Andrew User"
+date: "`r Sys.Date()`"
+output: litedown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to zigdist}
+  %\VignetteEngine{litedown::vignette}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction to zigdist
+
+The `zigdist` package provides high-performance, minimal-dependency implementations of distance metrics in the Zig programming language. It currently implements:
+
+- **Euclidean Distance** (self-distance and cross-distance for numeric matrices/data frames).
+- **Gower (1971) Distance** (self-distance and cross-distance for mixed-type data frames containing numeric, categorical, and ordinal features).
+
+## Euclidean Distance
+
+To calculate the pairwise Euclidean distance matrix of a numeric matrix `x`:
+
+```{r}
+library(zigdist)
+
+# Generate a random matrix
+set.seed(42)
+x <- matrix(rnorm(15), nrow = 5, ncol = 3)
+
+# Calculate pairwise distances (returns 5x5 matrix)
+zd_euclidean(x)
+```
+
+To calculate the cross-distance matrix between two matrices `x` (size $N \times P$) and `y` (size $M \times P$):
+
+```{r}
+y <- matrix(rnorm(9), nrow = 3, ncol = 3)
+
+# Calculate cross distance (returns 5x3 matrix)
+zd_euclidean(x, y)
+```
+
+## Gower Distance
+
+Gower distance is designed for mixed data types. Numeric and ordinal columns are scaled by their range:
+
+$$d_{ijk} = \frac{|x_{ik} - x_{jk}|}{\text{range}(x_{\cdot k})}$$
+
+Nominal (categorical/logical) columns are compared using simple matching:
+
+$$d_{ijk} = I(x_{ik} \neq x_{jk})$$
+
+The total Gower distance is the weighted average of these components:
+
+$$D_{ij} = \frac{\sum_k w_k d_{ijk}}{\sum_k w_k}$$
+
+### Ordinal Factors (Ordered Categories)
+Ordinal factors are natively supported. Following Podani's (1999) metric approach, `zd_gower` automatically converts ordered factors to their integer ranks ($1, 2, \dots$) and handles them as range-scaled numeric columns. This preserves the relative ordering and "closeness" of the categories (e.g., the distance between `Low` and `Medium` is smaller than between `Low` and `High`), matching R's standard `cluster::daisy` behavior.
+
+### Example
+
+```{r}
+# Create a mixed-type data frame with numeric, nominal, and ordinal columns
+df_x <- data.frame(
+  a = c(1, 2, 5),
+  b = factor(c("A", "B", "A")),
+  c = ordered(c("Low", "Medium", "High"), levels = c("Low", "Medium", "High"))
+)
+
+# Calculate pairwise Gower distances
+zd_gower(df_x)
+```
+
+You can also compute cross-distances between two mixed-type datasets, and provide custom column weights:
+
+```{r}
+df_y <- data.frame(
+  a = c(2, 4),
+  b = factor(c("A", "C")),
+  c = ordered(c("Medium", "High"), levels = c("Low", "Medium", "High"))
+)
+
+# Weighted Gower cross-distance
+zd_gower(df_x, df_y, weight = c(2.0, 0.5, 0.5))
+```
+
+Columns with zero range (i.e. constant values) are automatically ignored (excluded from the calculations) without raising division-by-zero errors.

@@ -1,0 +1,13 @@
+# Define objects to link into the shared library
+OBJECTS = register.o distance_zig.o
+
+# Link POSIX threads for parallel execution
+PKG_LIBS = -lpthread
+
+all: $(SHLIB)
+
+distance_zig.o: zig/distance.zig
+	zig build-obj -O ReleaseFast -fPIC -lc -I"$(R_INCLUDE_DIR)" -femit-bin=distance_zig.o zig/distance.zig
+
+clean:
+	rm -f *.o *.so

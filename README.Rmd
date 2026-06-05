@@ -1,0 +1,130 @@
+---
+output:
+  github_document:
+    html_preview: false
+---
+
+# zigdist
+
+`zigdist` is an experimental demonstration that integrates the [Zig programming language](https://ziglang.org/) into an R package. It provides high-performance distance metric calculations as a proof-of-concept. While Zig is not currently supported on CRAN, its exceptional performance, simple FFI, data-oriented design, and robust systems programming capabilities suggest it could be of significant interest to the R package development community.
+
+## Distance methods
+
+- Euclidean (`zd_euclidean()`): Pairwise row distance and cross-distance for numeric matrices, supporting missing values (partial distance scaling)
+- Gower (`zd_gower()`): Mixed-type distance computations (scaling numeric features by range, matching categorical features), supporting missing values (pairwise deletion)
+
+These distance methods use multi-threaded parallel execution by specifying `num_threads > 1`.
+
+## Installation
+
+You can install the development version of `zigdist` from GitHub:
+
+```r
+# install.packages("remotes")
+remotes::install_github("brownag/zigdist")
+```
+
+Note: A Zig compiler (v0.13.0 or later) must be installed on your system and available in your `PATH` to compile the package from source.
+
+## Quick Start
+
+```{r example}
+library(zigdist)
+
+# Euclidean
+x <- matrix(rnorm(15), nrow = 5, ncol = 3)
+zd_euclidean(x)
+
+# Gower (supports mixed types: numeric, nominal factors, and ordered factors)
+df <- data.frame(
+  a = c(1, 2, 5),
+  b = factor(c("A", "B", "A")),
+  c = ordered(c("Low", "Medium", "High"), levels = c("Low", "Medium", "High"))
+)
+zd_gower(df)
+```
+
+## Correctness and Equivalence
+
+To demonstrate functional equivalence, we verify that the outputs of `zigdist` match the standard R implementations (`stats::dist` and `cluster::daisy`) using `all.equal()`:
+
+```{r verification}
+# Euclidean vs. stats::dist
+x_check <- matrix(rnorm(300), nrow = 20, ncol = 15)
+all.equal(zd_euclidean(x_check), as.matrix(dist(x_check)), check.attributes = FALSE)
+
+# Gower vs. cluster::daisy
+library(cluster)
+df_check <- data.frame(
+  n = rnorm(20),
+  f = factor(sample(letters[1:3], 20, replace = TRUE)),
+  c = factor(sample(c("Yes", "No"), 20, replace = TRUE))
+)
+all.equal(zd_gower(df_check), as.matrix(daisy(df_check, metric = "gower")), check.attributes = FALSE)
+```
+
+## Performance Benchmarks
+
+Below are benchmarks comparing `zigdist` against standard R implementations, using the `microbenchmark` package.
+
+```{r benchmark_setup, message=FALSE, warning=FALSE}
+library(microbenchmark)
+library(cluster)
+```
+
+### Euclidean
+
+We compare `zigdist::zd_euclidean` (single-threaded and multi-threaded) against R's built-in `stats::dist` (converted to a full matrix) on a $500 \times 100$ numeric matrix.
+
+```{r benchmark_euclidean}
+set.seed(42)
+x_bench <- matrix(rnorm(50000), nrow = 500, ncol = 100)
+
+bench_eucl <- microbenchmark(
+  `zigdist 1 thread` = zd_euclidean(x_bench, num_threads = 1L),
+  `zigdist 4 thread` = zd_euclidean(x_bench, num_threads = 4L),
+  stats_dist = as.matrix(dist(x_bench)),
+  times = 50
+)
+print(bench_eucl)
+```
+
+```{r calc_eucl_speedup, echo=FALSE}
+sum_eucl <- summary(bench_eucl)
+eucl_speedup_1t <- sum_eucl$median[sum_eucl$expr == "stats_dist"] / sum_eucl$median[sum_eucl$expr == "zigdist 1 thread"]
+eucl_speedup_4t <- sum_eucl$median[sum_eucl$expr == "stats_dist"] / sum_eucl$median[sum_eucl$expr == "zigdist 4 thread"]
+```
+
+Even on a single thread (`num_threads = 1L`), `zigdist` significantly outperforms R's native `stats::dist` (written in optimized C) by more than **`r round(eucl_speedup_1t, 1)`x**. Spawning multiple threads (e.g., `num_threads = 4L`) achieves a **`r round(eucl_speedup_4t, 1)`x speedup**.
+
+### Gower
+
+We compare `zigdist::zd_gower` (single-threaded and multi-threaded) against `cluster::daisy(..., metric = "gower")` (converted to a full matrix) on a mixed-type data frame with 500 rows and 6 columns (3 numeric, 3 categorical).
+
+```{r benchmark_gower}
+set.seed(42)
+N_bench <- 500
+df_bench <- data.frame(
+  n1 = rnorm(N_bench),
+  n2 = runif(N_bench),
+  n3 = rnorm(N_bench, mean = 10, sd = 2),
+  c1 = factor(sample(letters[1:4], N_bench, replace = TRUE)),
+  c2 = factor(sample(c("Yes", "No"), N_bench, replace = TRUE)),
+  c3 = factor(sample(colors()[1:10], N_bench, replace = TRUE))
+)
+
+bench_gow <- microbenchmark(
+  `zigdist 1 thread` = zd_gower(df_bench, num_threads = 1L),
+  `zigdist 4 thread` = zd_gower(df_bench, num_threads = 4L),
+  cluster_daisy = as.matrix(daisy(df_bench, metric = "gower")),
+  times = 20
+)
+print(bench_gow)
+```
+
+```{r calc_gow_speedup, echo=FALSE}
+sum_gow <- summary(bench_gow)
+gow_speedup_1t <- sum_gow$median[sum_gow$expr == "cluster_daisy"] / sum_gow$median[sum_gow$expr == "zigdist 1 thread"]
+```
+
+For mixed-type data, `zigdist` represents a substantial improvement over `cluster::daisy`, calculating distances **`r round(gow_speedup_1t, 1)`x faster** in single-threaded mode. For smaller calculations, running sequentially on a single thread is recommended to eliminate thread-spawning overhead.

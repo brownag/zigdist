@@ -129,3 +129,12 @@ zd_gower(df_x, df_y, weight = c(2.0, 0.5, 0.5))
 Columns with zero range (i.e. constant values) are automatically ignored
 (excluded from the calculations) without raising division-by-zero
 errors.
+
+### References
+
+- Gower, J. C. (1971). A general coefficient of similarity and some of
+  its properties. *Biometrics*, 27(4), 857–871.
+  <https://doi.org/10.2307/2528823>
+- Podani, J. (1999). Extending Gower’s general coefficient of similarity
+  to ordinal characters. *Taxon*, 48(2), 331–340.
+  <https://doi.org/10.2307/1224024>

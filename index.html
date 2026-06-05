@@ -82,12 +82,12 @@
 <span><span class="co"># Euclidean</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">15</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">5</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/zd_euclidean.html">zd_euclidean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="do">##           [,1]     [,2]      [,3]      [,4]     [,5]</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="do">## [1,] 0.0000000 1.386659 0.7205155 1.4376812 3.073647</span></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="do">## [2,] 1.3866588 0.000000 1.1995957 1.4948732 1.996829</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="do">## [3,] 0.7205155 1.199596 0.0000000 0.7714199 2.759485</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="do">## [4,] 1.4376812 1.494873 0.7714199 0.0000000 2.476123</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="do">## [5,] 3.0736469 1.996829 2.7594852 2.4761225 0.000000</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="do">##          [,1]     [,2]     [,3]     [,4]     [,5]</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="do">## [1,] 0.000000 2.887606 2.755103 3.275980 3.171044</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="do">## [2,] 2.887606 0.000000 3.218801 3.139713 1.352931</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="do">## [3,] 2.755103 3.218801 0.000000 1.887001 2.958793</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="do">## [4,] 3.275980 3.139713 1.887001 0.000000 2.130555</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="do">## [5,] 3.171044 1.352931 2.958793 2.130555 0.000000</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Gower (supports mixed types: numeric, nominal factors, and ordered factors)</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -143,12 +143,12 @@
 <span>  times <span class="op">=</span> <span class="fl">50</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">bench_eucl</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="do">## Unit: milliseconds</span></span>
+<div class="sourceCode" id="cb12"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="do">## Unit: microseconds</span></span>
 <span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="do">##              expr      min       lq     mean   median       uq       max neval</span></span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="do">##  zigdist 1 thread 3.095839 3.341235 3.417879 3.376615 3.418276  5.956252    50</span></span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="do">##  zigdist 4 thread 1.137026 1.656667 1.922773 1.883927 2.174168  4.912599    50</span></span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="do">##        stats_dist 7.277462 7.355754 7.885795 7.846700 7.895426 12.916477    50</span></span></code></pre></div>
-<p>Even on a single thread (<code>num_threads = 1L</code>), <code>zigdist</code> significantly outperforms R’s native <code><a href="https://rdrr.io/r/stats/dist.html" class="external-link">stats::dist</a></code> (written in optimized C) by more than <strong>2.3x</strong>. Spawning multiple threads (e.g., <code>num_threads = 4L</code>) achieves a <strong>4.2x speedup</strong>.</p>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="do">##  zigdist 1 thread 3144.840 3443.247 3545.967 3476.088 3509.308  6514.185    50</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="do">##  zigdist 4 thread  939.331 1253.618 1645.115 1517.393 1870.322  5093.594    50</span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="do">##        stats_dist 7352.883 7513.347 8179.239 8005.413 8244.244 12209.052    50</span></span></code></pre></div>
+<p>Even on a single thread (<code>num_threads = 1L</code>), <code>zigdist</code> significantly outperforms R’s native <code><a href="https://rdrr.io/r/stats/dist.html" class="external-link">stats::dist</a></code> (written in optimized C) by more than <strong>2.3x</strong>. Spawning multiple threads (e.g., <code>num_threads = 4L</code>) achieves a <strong>5.3x speedup</strong>.</p>
 </div>
 <div class="section level3">
 <h3 id="gower">Gower<a class="anchor" aria-label="anchor" href="#gower"></a>
@@ -174,11 +174,15 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">bench_gow</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb14"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="do">## Unit: microseconds</span></span>
-<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="do">##              expr      min        lq     mean   median        uq      max neval</span></span>
-<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="do">##  zigdist 1 thread  560.772  628.8790 1065.951  825.953  978.4925 3645.901    20</span></span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="do">##  zigdist 4 thread  534.922  764.8815 1314.562 1225.668 1523.8690 4689.964    20</span></span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="do">##     cluster_daisy 4747.266 6152.7965 6797.294 6977.001 7758.4775 8386.117    20</span></span></code></pre></div>
-<p>For mixed-type data, <code>zigdist</code> represents a substantial improvement over <code><a href="https://rdrr.io/pkg/cluster/man/daisy.html" class="external-link">cluster::daisy</a></code>, calculating distances <strong>8.4x faster</strong> in single-threaded mode. For smaller calculations, running sequentially on a single thread is recommended to eliminate thread-spawning overhead.</p>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="do">##              expr      min        lq     mean    median        uq      max</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="do">##  zigdist 1 thread  542.272  604.8385 1127.525  824.4535  986.5465 4128.382</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="do">##  zigdist 4 thread  562.532  953.7210 1382.014 1171.0705 1566.3550 4057.090</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="do">##     cluster_daisy 4805.537 6250.7845 7044.421 7627.6950 7912.9260 9645.715</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="do">##  neval</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="do">##     20</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="do">##     20</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="do">##     20</span></span></code></pre></div>
+<p>For mixed-type data, <code>zigdist</code> represents a substantial improvement over <code><a href="https://rdrr.io/pkg/cluster/man/daisy.html" class="external-link">cluster::daisy</a></code>, calculating distances <strong>9.3x faster</strong> in single-threaded mode. For smaller calculations, running sequentially on a single thread is recommended to eliminate thread-spawning overhead.</p>
 </div>
 </div>
 </div>

@@ -35,6 +35,16 @@ zd_gower(x, y = NULL, weight = NULL, num_threads = 1L)
 A numeric matrix of Gower distances. If `y` is `NULL`, returns an
 `N_x x N_x` matrix. If `y` is provided, returns an `N_x x N_y` matrix.
 
+## References
+
+Gower, J. C. (1971). A general coefficient of similarity and some of its
+properties. *Biometrics*, 27(4), 857–871.
+[doi:10.2307/2528823](https://doi.org/10.2307/2528823)
+
+Podani, J. (1999). Extending Gower's general coefficient of similarity
+to ordinal characters. *Taxon*, 48(2), 331–340.
+[doi:10.2307/1224024](https://doi.org/10.2307/1224024)
+
 ## Examples
 
 ``` r

@@ -2,7 +2,7 @@
 title: "Introduction to zigdist"
 author: "Andrew User"
 date: "`r Sys.Date()`"
-output: litedown::html_vignette
+output: litedown::html_format
 vignette: >
   %\VignetteIndexEntry{Introduction to zigdist}
   %\VignetteEngine{litedown::vignette}

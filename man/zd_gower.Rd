@@ -40,3 +40,10 @@ df_y <- data.frame(
 )
 zd_gower(df_x, df_y, weight = c(2.0, 0.5, 0.5), num_threads = 2L)
 }
+\references{
+Gower, J. C. (1971). A general coefficient of similarity and some of its properties.
+\emph{Biometrics}, 27(4), 857–871. \doi{10.2307/2528823}
+
+Podani, J. (1999). Extending Gower's general coefficient of similarity to ordinal characters.
+\emph{Taxon}, 48(2), 331–340. \doi{10.2307/1224024}
+}

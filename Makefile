@@ -2,8 +2,6 @@
 
 R ?= R
 RSCRIPT ?= Rscript
-R_LIBS ?= /home/andrew/.local/share/R/library
-export R_LIBS
 
 # Default target
 all: document build check readme

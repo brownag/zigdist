@@ -2,3 +2,4 @@
 *.Rcheck
 src/*.o
 src/*.so
+docs

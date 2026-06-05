@@ -2,7 +2,7 @@ Package: zigdist
 Type: Package
 Title: High-Performance Distance Metric Calculations using Zig
 Version: 0.1.0
-Authors@R: person("Andrew", "Brown", role = c("aut", "cre"), email = "brown.andrewg@gmail.com")
+Authors@R: person("Andrew", "Brown", role = c("aut", "cre"), email = "brown.andrewg@gmail.com", comment = c(ORCID="0000-0002-4565-533X"))
 Description: An example implementation of distance metric calculations, including Euclidean and Gower distance, using the Zig programming language.
 License: GPL-3
 SystemRequirements: Zig (>= 0.13.0)
@@ -15,3 +15,4 @@ VignetteBuilder: litedown
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
+URL: http://humus.rocks/zigdist/

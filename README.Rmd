@@ -24,7 +24,27 @@ You can install the development version of `zigdist` from GitHub:
 remotes::install_github("brownag/zigdist")
 ```
 
-Note: A Zig compiler (v0.13.0 or later) must be installed on your system and available in your `PATH` to compile the package from source.
+Note: A Zig compiler (v0.13.0 or later) must be in your `PATH` to compile the package from source.
+
+The recommended way to install and manage Zig versions is using `zvm` (Zig Version Manager).
+
+**1. Install `zvm`**
+
+```bash
+curl -fsSL https://www.zvm.app/install.sh | bash
+```
+This script will install `zvm` to `~/.zvm` and add the necessary environment variables to your shell profile (e.g., `.bashrc`, `.zshrc`). You might need to restart your terminal or source your shell profile for the changes to take effect.
+
+**2. Install a Zig version**
+
+Once `zvm` is installed, you can install the current stable Zig version:
+
+```bash
+zvm install stable
+zvm use stable
+```
+You can also set a default version with `zvm alias default stable`.
+
 
 ## Quick Start
 
@@ -74,7 +94,7 @@ library(cluster)
 
 ### Euclidean
 
-We compare `zigdist::zd_euclidean` (single-threaded and multi-threaded) against R's built-in `stats::dist` (converted to a full matrix) on a $500 \times 100$ numeric matrix.
+We compare `zigdist::zd_euclidean` (single-threaded and multi-threaded) against R's built-in `stats::dist` (converted to a full matrix) on a 500 by 100 numeric matrix.
 
 ```{r benchmark_euclidean}
 set.seed(42)

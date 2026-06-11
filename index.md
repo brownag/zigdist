@@ -33,8 +33,33 @@ You can install the development version of `zigdist` from GitHub:
 remotes::install_github("brownag/zigdist")
 ```
 
-Note: A Zig compiler (v0.13.0 or later) must be installed on your system
-and available in your `PATH` to compile the package from source.
+Note: A Zig compiler (v0.13.0 or later) must be in your `PATH` to
+compile the package from source.
+
+The recommended way to install and manage Zig versions is using `zvm`
+(Zig Version Manager).
+
+**1. Install `zvm`**
+
+``` bash
+curl -fsSL https://www.zvm.app/install.sh | bash
+```
+
+This script will install `zvm` to `~/.zvm` and add the necessary
+environment variables to your shell profile (e.g., `.bashrc`, `.zshrc`).
+You might need to restart your terminal or source your shell profile for
+the changes to take effect.
+
+**2. Install a Zig version**
+
+Once `zvm` is installed, you can install the current stable Zig version:
+
+``` bash
+zvm install stable
+zvm use stable
+```
+
+You can also set a default version with `zvm alias default stable`.
 
 ## Quick Start
 
@@ -48,12 +73,12 @@ zd_euclidean(x)
 ```
 
 ``` R
-##          [,1]     [,2]     [,3]     [,4]     [,5]
-## [1,] 0.000000 2.887606 2.755103 3.275980 3.171044
-## [2,] 2.887606 0.000000 3.218801 3.139713 1.352931
-## [3,] 2.755103 3.218801 0.000000 1.887001 2.958793
-## [4,] 3.275980 3.139713 1.887001 0.000000 2.130555
-## [5,] 3.171044 1.352931 2.958793 2.130555 0.000000
+##           [,1]     [,2]      [,3]      [,4]      [,5]
+## [1,] 0.0000000 2.718995 1.0371808 0.8806271 0.7104837
+## [2,] 2.7189954 0.000000 2.3454602 3.4465129 2.2092641
+## [3,] 1.0371808 2.345460 0.0000000 1.4490295 0.5355371
+## [4,] 0.8806271 3.446513 1.4490295 0.0000000 1.2705891
+## [5,] 0.7104837 2.209264 0.5355371 1.2705891 0.0000000
 ```
 
 ``` r
@@ -126,7 +151,7 @@ We compare
 [`zigdist::zd_euclidean`](http://humus.rocks/zigdist/reference/zd_euclidean.md)
 (single-threaded and multi-threaded) against R’s built-in
 [`stats::dist`](https://rdrr.io/r/stats/dist.html) (converted to a full
-matrix) on a $`500 \times 100`$ numeric matrix.
+matrix) on a 500 by 100 numeric matrix.
 
 ``` r
 
@@ -143,18 +168,22 @@ print(bench_eucl)
 ```
 
 ``` R
-## Unit: microseconds
-##              expr      min       lq     mean   median       uq       max neval
-##  zigdist 1 thread 3144.840 3443.247 3545.967 3476.088 3509.308  6514.185    50
-##  zigdist 4 thread  939.331 1253.618 1645.115 1517.393 1870.322  5093.594    50
-##        stats_dist 7352.883 7513.347 8179.239 8005.413 8244.244 12209.052    50
+## Unit: milliseconds
+##              expr       min        lq      mean    median        uq       max
+##  zigdist 1 thread  6.429038  7.427399 11.090695  8.315266 15.527293 18.913611
+##  zigdist 4 thread  2.526398  3.016101  4.354398  3.385486  6.104136  9.398731
+##        stats_dist 13.214829 13.844654 19.579176 14.417614 28.740439 40.654006
+##  neval
+##     50
+##     50
+##     50
 ```
 
 Even on a single thread (`num_threads = 1L`), `zigdist` significantly
 outperforms R’s native
 [`stats::dist`](https://rdrr.io/r/stats/dist.html) (written in optimized
-C) by more than **2.3x**. Spawning multiple threads (e.g.,
-`num_threads = 4L`) achieves a **5.3x speedup**.
+C) by more than **1.7x**. Spawning multiple threads (e.g.,
+`num_threads = 4L`) achieves a **4.3x speedup**.
 
 ### Gower
 
@@ -189,10 +218,10 @@ print(bench_gow)
 
 ``` R
 ## Unit: microseconds
-##              expr      min        lq     mean    median        uq      max
-##  zigdist 1 thread  542.272  604.8385 1127.525  824.4535  986.5465 4128.382
-##  zigdist 4 thread  562.532  953.7210 1382.014 1171.0705 1566.3550 4057.090
-##     cluster_daisy 4805.537 6250.7845 7044.421 7627.6950 7912.9260 9645.715
+##              expr      min       lq      mean    median        uq       max
+##  zigdist 1 thread 1124.568 1192.451  2290.963  1729.693  1867.452  8402.135
+##  zigdist 4 thread  617.543 1050.959  1771.018  1579.399  1892.815  7103.058
+##     cluster_daisy 7315.448 9224.679 11691.348 12963.284 13780.539 16096.776
 ##  neval
 ##     20
 ##     20
@@ -201,6 +230,6 @@ print(bench_gow)
 
 For mixed-type data, `zigdist` represents a substantial improvement over
 [`cluster::daisy`](https://rdrr.io/pkg/cluster/man/daisy.html),
-calculating distances **9.3x faster** in single-threaded mode. For
+calculating distances **7.5x faster** in single-threaded mode. For
 smaller calculations, running sequentially on a single thread is
 recommended to eliminate thread-spawning overhead.
